@@ -1,0 +1,98 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>Chat</title>
+	<link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+	<div class="chat">
+		<input type="text" class="chat-name" placeholder="Enter your name">
+		<div class="chat-messages">
+			<!--<div class="chat-message">
+				Harsha: Hello there!
+			</div>
+			<div class="chat-message">
+				Venkat: Hello there!
+			</div>-->
+		</div>
+		<textarea placeholder="type your message"></textarea>
+		<div class="chat-status"> Status: <span>Idle</span></div>
+	</div>
+
+	<!--<script src="/socket.io/socket.io.js"></script>-->
+	<script src="http://127.0.0.1:8080/socket.io/socket.io.js"></script>
+	
+
+
+	<script>
+		(function(){
+			var getNode = function(s){
+				return document.querySelector(s);
+
+			},
+
+			//Get required nodes
+			status = getNode('.chat-status span'),
+			textarea = getNode('.chat textarea'),
+			chatName = getNode('.chat-name')
+
+			statusDefault = status.textContent,
+
+			setStatus = function(){
+				status.textContent = s;
+
+				if(s !== statusDefault){
+					var delay = setTimeout(function(){
+						setStatus(statusDefault);
+						clearInterval(delay);
+					},3000);
+
+				}
+			};
+
+			//setStatus('Testing');
+
+			try{
+				var socket = io.connect('http://127.0.0.1:8080');
+			}
+			catch(e){
+				//Set status to warn user
+
+			}
+
+			if(socket !== undefined){
+				//console.log('OK!');
+
+				//Listen for a Status
+				socket.on('status', function(data){
+					setStatus((typeof data === 'object') ? data.message: data);
+
+					if(data.clear === true) {
+						textarea.value = '';
+					}
+				});
+
+				//Listen for keydown
+				textarea.addEventListener('keydown', function(event){
+					var self = this,
+						name = chatName.value;
+
+						//console.log(event.which); //tells which key is press down
+						//console.log(event);
+
+						if(event.which === 13 && event.shiftKey === false) {
+							//console.log('Send');
+							socket.emit('input', {
+								name: name,
+								message: self.value
+							});	
+							event.preventDefault();						
+						}
+				});
+
+			}
+
+		})();
+	</script>
+</body>
+</html>
