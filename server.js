@@ -14,6 +14,12 @@ client.on('connection', function(socket){
 				socket.emit('status',s);
 			};
 
+	//emit all messages
+	col.find().limit(100).sort({_id:1 }).toArray(function(err,res){
+		if(err) throw err;
+		socket.emit('output',res);
+	});
+
 	//wait for input
 	socket.on('input', function(data){
 		console.log(data);
@@ -28,11 +34,15 @@ client.on('connection', function(socket){
 			else{
 				//insert data into collection 
 				col.insert({name: name,  message: message}, function(){
+
+				//Emit latest message to client
+				client.emit('output', [data]);
+
 				console.log('Inserted');
 
 				sendStatus({
 					message: "Message Sent",
-					clear: true;
+					clear: true
 				});
 		});
 		}
